@@ -4,7 +4,7 @@ import datetime as dt
 from scipy.optimize import minimize
 
 #bonds_payments import
-bonds_payments = pd.read_csv('/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_payments.csv', sep = ';')
+bonds_payments = pd.read_csv('/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_payments.csv')
 bonds_payments['Дата фактической выплаты'] = pd.to_datetime(bonds_payments['Дата фактической выплаты'])
 
 #bonds_prices import
@@ -33,8 +33,10 @@ def build_ss_loss_function(date):
     
     market_prices = bonds_prices[date:date].T
     market_prices.columns = ['Market prices']
+    market_prices.dropna(inplace=True)
     
     payments_on_date = bonds_payments[bonds_payments['Дата фактической выплаты'] >= date]
+    payments_on_date = payments_on_date[payments_on_date['Торговый код'].isin(market_prices.index)]
     
     def ss_loss_function(theta):
         
@@ -94,10 +96,12 @@ def build_ss_loss_function(date):
     
     return ss_loss_function
 
+
+loss_functions = [build_ss_loss_function(date = dates[date_number]) for date_number in range(len(dates))]
 #to optimize
 def optimize_on_day_with_starting_values(date_number, method, theta0):
     
-    loss_func = build_ss_loss_function(date = dates[date_number])
+    loss_func = loss_functions[date_number]
     loss_func(theta = theta0)
     
     res = minimize(loss_func, theta0, method='BFGS', options={'xtol': 1e-8, 'disp': False, 'maxiter': 100000})
