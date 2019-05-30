@@ -62,8 +62,6 @@ def build_ss_loss_function(date):
         result_df = pd.concat([pd.DataFrame(calc_df.groupby('Торговый код')['Discounted'].sum()), 
                                corrected_market_prices], axis = 1)
         
-        print(results_df)
-        
         #Sum of squares
         J = (((np.array(result_df['Discounted']) - np.array(result_df['Market prices']))/1000)**2).sum()
         
