@@ -3,14 +3,17 @@ import numpy as np
 import datetime as dt
 from scipy.optimize import minimize
 from pyswarm import pso
-from multiprocessing import Pool
+
+
+#/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/
+#C:/Users/1/Desktop/
 
 #bonds_payments import
-bonds_payments = pd.read_csv('/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_payments.csv')
+bonds_payments = pd.read_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_payments.csv')
 bonds_payments['Дата фактической выплаты'] = pd.to_datetime(bonds_payments['Дата фактической выплаты'])
 
 #bonds_prices import
-bonds_prices = pd.read_csv('/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_prices.csv', index_col='TRADEDATE', parse_dates=True)
+bonds_prices = pd.read_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_prices.csv', index_col='TRADEDATE', parse_dates=True)
 
 #dates and trade_codes
 dates = bonds_prices.index
@@ -116,4 +119,44 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
 
     return res.x
     
+def optimize_ss_bfgs(starting_values):
+
+    thetas = np.zeros([len(dates), 6])
+
+    theta0 = starting_values[1:]
+
+    for i in range(len(dates)):
+        
+        thetas[i] = optimize_on_day_with_starting_values(date_number = i, method = 'BFGS', theta0 = theta0)
+        
+    thetas = pd.DataFrame(thetas, columns=['tau1', 'tau2', 'beta0', 'beta1', 'beta2', 'beta3'], index=dates)
     
+    thetas.to_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Thetas/bfgs_rand_' + str(int(starting_values[0])) + '.csv')
+    
+def optimize_ss_nelder_mead(starting_values):
+
+    thetas = np.zeros([len(dates), 6])
+
+    theta0 = starting_values[1:]
+
+    for i in range(len(dates)):
+        
+        thetas[i] = optimize_on_day_with_starting_values(date_number = i, method = 'nelder-mead', theta0 = theta0)
+        
+    thetas = pd.DataFrame(thetas, columns=['tau1', 'tau2', 'beta0', 'beta1', 'beta2', 'beta3'], index=dates)
+    
+    thetas.to_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Thetas/nelder_mead_rand_' + str(int(starting_values[0])) + '.csv')
+
+def optimize_ss_powell(starting_values):
+
+    thetas = np.zeros([len(dates), 6])
+
+    theta0 = starting_values[1:]
+
+    for i in range(len(dates)):
+        
+        thetas[i] = optimize_on_day_with_starting_values(date_number = i, method = 'powell', theta0 = theta0)
+        
+    thetas = pd.DataFrame(thetas, columns=['tau1', 'tau2', 'beta0', 'beta1', 'beta2', 'beta3'], index=dates)
+    
+    thetas.to_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Thetas/powell_rand_' + str(int(starting_values[0])) + '.csv')
