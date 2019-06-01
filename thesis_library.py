@@ -161,3 +161,22 @@ def optimize_ss_powell(starting_values):
     
     thetas.to_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Thetas/powell_rand_' + str(int(starting_values[0])) + '.csv')
     
+def pso_multithread(interval):
+    
+    pso_batch = np.zeros([interval[1] - interval[0], 6])
+
+    for i in range(interval[0], interval[1]):
+        
+        loss_func = loss_functions[i]
+        
+        lb = [0, 0, 0, -100, -100, -100]
+        ub = [30, 30, 100, 100, 100, 100]
+    
+        res = pso(func=loss_func, lb = lb, ub = ub, maxiter=1000)
+        
+        pso_batch[i - interval[0]] = res[0]
+        
+    pso_batch = pd.DataFrame(pso_batch, columns=['tau1', 'tau2', 'beta0', 'beta1', 'beta2', 'beta3'], index=dates[interval[0]:interval[1]])
+    
+    pso_batch.to_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Thetas/pso_batch_' + str(interval[1]) + '.csv')  
+    
