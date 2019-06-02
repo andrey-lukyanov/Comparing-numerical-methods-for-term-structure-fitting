@@ -9,7 +9,7 @@ from pyswarm import pso
 #C:/Users/1/Desktop/
 
 #bonds_payments import
-bonds_payments = pd.read_csv('C:/Users/1/Desktop/Coding/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_payments.csv')
+bonds_payments = pd.read_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_payments.csv')
 bonds_payments['Дата фактической выплаты'] = pd.to_datetime(bonds_payments['Дата фактической выплаты'])
 
 #bonds_prices import
