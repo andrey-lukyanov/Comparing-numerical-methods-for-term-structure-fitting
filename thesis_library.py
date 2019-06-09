@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 from scipy.optimize import minimize
+from scipy.optimize import least_squares
 from pyswarm import pso
 
 
@@ -9,11 +10,11 @@ from pyswarm import pso
 #C:/Users/1/Desktop/
 
 #bonds_payments import
-bonds_payments = pd.read_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_payments.csv')
+bonds_payments = pd.read_csv('/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_payments.csv')
 bonds_payments['Дата фактической выплаты'] = pd.to_datetime(bonds_payments['Дата фактической выплаты'])
 
 #bonds_prices import
-bonds_prices = pd.read_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_prices.csv', index_col='TRADEDATE', parse_dates=True)
+bonds_prices = pd.read_csv('/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_prices.csv', index_col='TRADEDATE', parse_dates=True)
 
 #dates and trade_codes
 dates = bonds_prices.index
@@ -115,7 +116,12 @@ loss_functions = [build_ss_loss_function(date = dates[date_number]) for date_num
 def optimize_on_day_with_starting_values(date_number, method, theta0):
     
     loss_func = loss_functions[date_number]
-    res = minimize(loss_func, theta0, method='BFGS', options={'xtol': 1e-8, 'disp': False, 'maxiter': 100000})
+    
+    if method != 'Gauss-Newton':
+        res = minimize(loss_func, theta0, method=method, options={'xtol': 1e-8, 'disp': False, 'maxiter': 100000})
+        
+    else:
+        res = least_squares(loss_func, theta0, method=method, options={'xtol': 1e-8, 'disp': False, 'maxiter': 100000})
 
     return res.x
     
@@ -132,6 +138,20 @@ def optimize_ss_bfgs(starting_values):
     thetas = pd.DataFrame(thetas, columns=['tau1', 'tau2', 'beta0', 'beta1', 'beta2', 'beta3'], index=dates)
     
     thetas.to_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Thetas/bfgs_rand_' + str(int(starting_values[0])) + '.csv')
+    
+def optimize_ss_gauss_newton(starting_values):
+
+    thetas = np.zeros([len(dates), 6])
+
+    theta0 = starting_values[1:]
+
+    for i in range(len(dates)):
+        
+        thetas[i] = optimize_on_day_with_starting_values(date_number = i, method = 'Gauss-Newton', theta0 = theta0)
+        
+    thetas = pd.DataFrame(thetas, columns=['tau1', 'tau2', 'beta0', 'beta1', 'beta2', 'beta3'], index=dates)
+    
+    thetas.to_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Thetas/gauss_newton_rand_' + str(int(starting_values[0])) + '.csv')
     
 def optimize_ss_nelder_mead(starting_values):
 
