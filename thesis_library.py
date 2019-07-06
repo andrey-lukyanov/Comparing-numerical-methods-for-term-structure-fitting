@@ -35,7 +35,7 @@ def discount(df, theta):
     df['Discounted'] = (df['Сумма купона, RUB'] + df['Погашение номинала, RUB']) * np.exp(-nss(m = df['Дата фактической выплаты'], theta = theta)/100 * df['Дата фактической выплаты'])
     
 #loss function
-def build_ss_loss_function(date):
+def build_ss_loss_function(date, theta_lb, theta_rb):
     
     market_prices = bonds_prices[date:date].T
     market_prices.columns = ['Market prices']
@@ -54,7 +54,7 @@ def build_ss_loss_function(date):
         
         C = np.ones(8) * 1000
         
-        nonlocal payments_on_date, market_prices, date
+        nonlocal payments_on_date, market_prices, date, theta_lb, theta_rb
     
         calc_df = pd.concat([(payments_on_date['Дата фактической выплаты'] - date).apply(lambda x: x.days)/365, 
                           payments_on_date[['Торговый код', 'Сумма купона, RUB', 'Погашение номинала, RUB']]], axis = 1)
@@ -70,47 +70,67 @@ def build_ss_loss_function(date):
         J = (((np.array(result_df['Discounted']) - np.array(result_df['Market prices']))/1000)**2).sum()
         
         #constraints
-        if (theta[0] > 0) & (theta[0] <= 30):
+        #попробовать новые границы
+        if (theta[0] > theta_lb) & (theta[0] <= theta_rb):
             c1 = 0
-        else:
-            c1 = C[1] * theta[0]**2
+        elif theta[0] < theta_lb:
+            c1 = C[1] * (-theta_lb + theta[0])**2
+        elif theta[0] > theta_rb:
+            c1 = C[1] * (theta[0] - theta_rb)**2
+#        print('c1: ', c1)
 
-        if (theta[1] > 0) & (theta[1] <= 30):
+        if (theta[1] > theta_lb) & (theta[1] <= theta_rb):
             c2 = 0
-        else:
-            c2 = C[2] * theta[1]**2
-            
+        elif theta[1] < theta_lb:
+            c2 = C[2] * (-theta_lb + theta[1])**2
+        elif theta[1] > theta_rb:
+            c2 = C[2] * (theta[1] - theta_rb)**2
+#        print('c2: ', c2)
+        
         if theta[2] + theta[3] >= 0:
             c3 = 0
         else:
             c3 = C[3] * (theta[2] + theta[3])**2
-            
+#        print('c3: ', c3)
+        
         if (theta[2] >= 0) & (theta[2] <= 100):
             c4 = 0
-        else:
-            c4 = C[4] * theta[2]**2
+        elif theta[2] < 0:
+            c4 = C[4] * (theta[2])**2
+        elif theta[2] > 100:
+            c4 = C[4] * (theta[2] - 100)**2
+#        print('c4: ', c4)
         
         if (theta[3] >= -100) & (theta[3] <= 100):
-            c5 = 0
-        else:
-            c5 = C[5] * theta[3]**2 
-
+            c5 = 0  
+        elif theta[3] < -100:
+            c5 = C[5] * (theta[3] + 100)**2
+        elif theta[3] > 100:
+            c5 = C[5] * (theta[3] - 100)**2
+#        print('c5: ', c5)
+        
         if (theta[4] >= -100) & (theta[4] <= 100):
             c6 = 0
-        else:
-            c6 = C[6] * theta[4]**2 
-            
+        elif theta[4] < -100:
+            c6 = C[6] * (theta[4] + 100)**2
+        elif theta[4] > 100:
+            c6 = C[6] * (theta[4] - 100)**2
+#        print('c6: ', c6)
+        
         if (theta[5] >= -100) & (theta[5] <= 100):
             c7 = 0
-        else:
-            c7 = C[7] * theta[5]**2 
-                            
+        elif theta[5] < -100:
+            c7 = C[7] * (theta[5] + 100)**2
+        elif theta[5] > 100:
+            c7 = C[7] * (theta[5] - 100)**2
+#        print('c7: ', c7)
+        
         return J + c1 + c2 + c3 + c4 + c5 + c6 + c7
     
     return ss_loss_function
 
 
-loss_functions = [build_ss_loss_function(date = dates[date_number]) for date_number in range(len(dates))]
+loss_functions = [build_ss_loss_function(date = dates[date_number], 0.1, 30) for date_number in range(len(dates))]
 
 #optimize on date by method with staring values
 def optimize_on_day_with_starting_values(date_number, method, theta0):
@@ -118,10 +138,10 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
     loss_func = loss_functions[date_number]
     
     if method != 'Gauss-Newton':
-        res = minimize(loss_func, theta0, method=method, options={'xtol': 1e-8, 'disp': False, 'maxiter': 100000})
+        res = minimize(loss_func, theta0, method=method)
         
     else:
-        res = least_squares(loss_func, theta0, method=method, options={'xtol': 1e-8, 'disp': False, 'maxiter': 100000})
+        res = least_squares(loss_func, theta0)
 
     return res.x
     
@@ -179,7 +199,7 @@ def optimize_ss_powell(starting_values):
         
     thetas = pd.DataFrame(thetas, columns=['tau1', 'tau2', 'beta0', 'beta1', 'beta2', 'beta3'], index=dates)
     
-    thetas.to_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Thetas/powell_rand_' + str(int(starting_values[0])) + '.csv')
+    thetas.to_csv('/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/Thetas/powell_rand_' + str(int(starting_values[0])) + '.csv')
     
 def pso_multithread(interval):
     
@@ -189,7 +209,7 @@ def pso_multithread(interval):
         
         loss_func = loss_functions[i]
         
-        lb = [0, 0, 0, -100, -100, -100]
+        lb = [0.1, 0.1, 0, -100, -100, -100]
         ub = [30, 30, 100, 100, 100, 100]
     
         res = pso(func=loss_func, lb = lb, ub = ub, maxiter=1000)
