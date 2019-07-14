@@ -10,11 +10,11 @@ from pyswarm import pso
 #C:/Users/1/Desktop/
 
 #bonds_payments import
-bonds_payments = pd.read_csv('/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_payments.csv')
+bonds_payments = pd.read_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_payments.csv')
 bonds_payments['Дата фактической выплаты'] = pd.to_datetime(bonds_payments['Дата фактической выплаты'])
 
 #bonds_prices import
-bonds_prices = pd.read_csv('/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_prices.csv', index_col='TRADEDATE', parse_dates=True)
+bonds_prices = pd.read_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_prices.csv', index_col='TRADEDATE', parse_dates=True)
 
 #dates and trade_codes
 dates = bonds_prices.index
@@ -130,7 +130,7 @@ def build_ss_loss_function(date, theta_lb, theta_rb):
     return ss_loss_function
 
 
-loss_functions = [build_ss_loss_function(date = dates[date_number], 0.1, 30) for date_number in range(len(dates))]
+loss_functions = [build_ss_loss_function(dates[date_number], 0.1, 30) for date_number in range(len(dates))]
 
 #optimize on date by method with staring values
 def optimize_on_day_with_starting_values(date_number, method, theta0):
@@ -199,7 +199,7 @@ def optimize_ss_powell(starting_values):
         
     thetas = pd.DataFrame(thetas, columns=['tau1', 'tau2', 'beta0', 'beta1', 'beta2', 'beta3'], index=dates)
     
-    thetas.to_csv('/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/Thetas/powell_rand_' + str(int(starting_values[0])) + '.csv')
+    thetas.to_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Thetas/powell_rand_' + str(int(starting_values[0])) + '.csv')
     
 def pso_multithread(interval):
     
