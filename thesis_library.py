@@ -10,11 +10,11 @@ from pyswarm import pso
 #C:/Users/1/Desktop/
 
 #bonds_payments import
-bonds_payments = pd.read_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_payments.csv')
+bonds_payments = pd.read_csv('/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_payments.csv')
 bonds_payments['Дата фактической выплаты'] = pd.to_datetime(bonds_payments['Дата фактической выплаты'])
 
 #bonds_prices import
-bonds_prices = pd.read_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_prices.csv', index_col='TRADEDATE', parse_dates=True)
+bonds_prices = pd.read_csv('/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/Data/bonds_prices.csv', index_col='TRADEDATE', parse_dates=True)
 
 #dates and trade_codes
 dates = bonds_prices.index
@@ -73,7 +73,7 @@ def build_ss_loss_function(date, theta_lb, theta_rb):
         #попробовать новые границы
         if (theta[0] > theta_lb) & (theta[0] <= theta_rb):
             c1 = 0
-        elif theta[0] < theta_lb:
+        elif theta[0] <= theta_lb:
             c1 = C[1] * (-theta_lb + theta[0])**2
         elif theta[0] > theta_rb:
             c1 = C[1] * (theta[0] - theta_rb)**2
@@ -81,7 +81,7 @@ def build_ss_loss_function(date, theta_lb, theta_rb):
 
         if (theta[1] > theta_lb) & (theta[1] <= theta_rb):
             c2 = 0
-        elif theta[1] < theta_lb:
+        elif theta[1] <= theta_lb:
             c2 = C[2] * (-theta_lb + theta[1])**2
         elif theta[1] > theta_rb:
             c2 = C[2] * (theta[1] - theta_rb)**2
@@ -218,5 +218,4 @@ def pso_multithread(interval):
         
     pso_batch = pd.DataFrame(pso_batch, columns=['tau1', 'tau2', 'beta0', 'beta1', 'beta2', 'beta3'], index=dates[interval[0]:interval[1]])
     
-    pso_batch.to_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Thetas/pso_batch_' + str(interval[1]) + '.csv')  
-    
+    pso_batch.to_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Thetas/pso_batch_' + str(interval[1]) + '.csv')
