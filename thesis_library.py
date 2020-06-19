@@ -132,6 +132,44 @@ def build_ss_loss_function(date, theta_lb, theta_rb):
 
 loss_functions = [build_ss_loss_function(dates[date_number], 0.1, 30) for date_number in range(len(dates))]
 
+def build_rmse_function(date):
+    
+    market_prices = bonds_prices[date:date].T
+    market_prices.columns = ['Market prices']
+    market_prices.dropna(inplace=True)
+
+    
+    payments_on_date = bonds_payments[bonds_payments['Дата фактической выплаты'] >= date]
+    payments_on_date = payments_on_date[payments_on_date['Торговый код'].isin(market_prices.index)]
+    
+    principals = pd.DataFrame(payments_on_date.groupby('Торговый код')['Погашение номинала, RUB'].sum())
+    
+    #correction of amortizable bonds prices
+    corrected_market_prices = np.multiply(market_prices, principals) / 100
+    
+    def rmse_function(theta):
+        
+        nonlocal payments_on_date, market_prices, date
+    
+        calc_df = pd.concat([(payments_on_date['Дата фактической выплаты'] - date).apply(lambda x: x.days)/365, 
+                          payments_on_date[['Торговый код', 'Сумма купона, RUB', 'Погашение номинала, RUB']]], axis = 1)
+        
+        discount(calc_df, theta)
+      
+        calc_prices = pd.DataFrame(calc_df.groupby('Торговый код')['Discounted'].sum())
+                
+        result_df = pd.concat([pd.DataFrame(calc_df.groupby('Торговый код')['Discounted'].sum()), 
+                               corrected_market_prices], axis = 1)
+        
+        #Sum of squares
+        J = (((np.array(result_df['Discounted']) - np.array(result_df['Market prices']))/1000)**2).sum()
+        
+        return J
+    
+    return rmse_function
+
+rmse_functions = [build_rmse_function(dates[date_number]) for date_number in range(len(dates))]
+
 #optimize on date by method with staring values
 def optimize_on_day_with_starting_values(date_number, method, theta0):
     
