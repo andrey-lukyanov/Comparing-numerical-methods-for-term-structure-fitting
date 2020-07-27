@@ -28,7 +28,6 @@ Thetas/.ipynb_checkpoints/cbr_thetas-checkpoint.csv
 Thetas/.ipynb_checkpoints/diebold_li-checkpoint.csv
 Thetas/.ipynb_checkpoints/diebold_li_old-checkpoint.csv
 Thetas/.ipynb_checkpoints/powell_rand_9-checkpoint.csv
-2016_bonds.ipynb
 Thetas/.ipynb_checkpoints/bfgs_diebold_li-checkpoint.csv
 RMSE/.ipynb_checkpoints/rmse-checkpoint.csv
 Pictures/RMSE_presentation.png
@@ -49,6 +48,6 @@ Data/New_data/.ipynb_checkpoints/principal-checkpoint.csv
 .ipynb_checkpoints/2016_Prices_import_IRR_calculation-checkpoint.ipynb
 .ipynb_checkpoints/2016_calculation-checkpoint.ipynb
 .ipynb_checkpoints/New_prices_import-checkpoint.ipynb
-*.ipynb
 Data/New_data/.ipynb_checkpoints/bonds_prices_all-checkpoint.csv
 .ipynb_checkpoints/New_prices_import-checkpoint.ipynb
+__pycache__/new_thesis_library.cpython-37.pyc
