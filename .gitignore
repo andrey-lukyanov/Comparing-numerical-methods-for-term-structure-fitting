@@ -51,3 +51,6 @@ Data/New_data/.ipynb_checkpoints/principal-checkpoint.csv
 Data/New_data/.ipynb_checkpoints/bonds_prices_all-checkpoint.csv
 .ipynb_checkpoints/New_prices_import-checkpoint.ipynb
 __pycache__/new_thesis_library.cpython-37.pyc
+Time/.ipynb_checkpoints/l_bfgs_b_recurrent-checkpoint.csv
+Time/.ipynb_checkpoints/nelder_mead_recurrent-checkpoint.csv
+__pycache__/new_thesis_library.cpython-36.pyc
