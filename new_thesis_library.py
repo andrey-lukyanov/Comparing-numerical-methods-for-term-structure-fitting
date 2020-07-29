@@ -172,7 +172,10 @@ reparameterized_loss_functions = [build_reparametarized_loss_function(dates[date
 #optimize on date by method with staring values
 def optimize_on_day_with_starting_values(date_number, method, theta0):
 
-    if method == 'L-BFGS-B' or 'Powell':
+    if method == 'L-BFGS-B':
+        
+        theta0[3] = theta0[3] + theta0[2]
+        
         loss_func = reparameterized_loss_functions[date_number]
         
         bounds = Bounds([0, 0, 0, 0, -np.inf, -np.inf], 
@@ -189,6 +192,30 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
         theta[3] = theta[3] - theta[2]
         
         return theta, execution_time
+    
+    elif method == 'Powell':
+        
+        theta0[3] = theta0[3] + theta0[2]
+        
+        loss_func = reparameterized_loss_functions[date_number]
+        
+        bounds = ((0, 30), (0, 30), (0, np.inf), 
+                  (0, np.inf), (-np.inf, np.inf), (-np.inf, np.inf))
+        
+        start = dt.datetime.now()
+    
+        res = minimize(loss_func, theta0, method=method,
+                       options={'disp': False}, bounds=bounds)
+        
+        execution_time = (dt.datetime.now() - start).total_seconds()
+        
+        theta = res.x
+        theta[3] = theta[3] - theta[2]
+        
+        return theta, execution_time        
+    
+    
+    bounds = ((0, 30), (0, 30), (0, np.inf), (0, np.inf), (-np.inf, np.inf), (-np.inf, np.inf))
         
     elif method == 'trust-constr':            
         loss_func = loss_functions[date_number]
