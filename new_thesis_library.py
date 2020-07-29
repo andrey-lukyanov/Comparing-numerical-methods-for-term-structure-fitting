@@ -213,9 +213,6 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
         theta[3] = theta[3] - theta[2]
         
         return theta, execution_time        
-    
-    
-    bounds = ((0, 30), (0, 30), (0, np.inf), (0, np.inf), (-np.inf, np.inf), (-np.inf, np.inf))
         
     elif method == 'trust-constr':            
         loss_func = loss_functions[date_number]
