@@ -4,18 +4,17 @@ import datetime as dt
 from scipy.optimize import minimize
 from scipy.optimize import Bounds
 from scipy.optimize import LinearConstraint
-from pyswarm import pso
-
-
+s
 #/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/
 #C:/Users/1/Desktop/
+#C:/Users/aaluk/Documents/GitHub/
 
 #bonds_payments import
-bonds_payments = pd.read_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Data/New_data/bonds_payments.csv', index_col = 0)
+bonds_payments = pd.read_csv('C:/Users/aaluk/Documents/GitHub/Comparing-numerical-methods-for-term-structure-fitting/Data/New_data/bonds_payments.csv', index_col = 0)
 bonds_payments['Дата фактической выплаты'] = pd.to_datetime(bonds_payments['Дата фактической выплаты'], format='%Y-%m-%d')
 
 #bonds_prices import
-bonds_prices = pd.read_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Data/New_data/bonds_prices.csv', index_col='TRADEDATE', parse_dates=True)
+bonds_prices = pd.read_csv('C:/Users/aaluk/Documents/GitHub/Comparing-numerical-methods-for-term-structure-fitting/Data/New_data/bonds_prices.csv', index_col='TRADEDATE', parse_dates=True)
 
 #dates and trade_codes
 dates = bonds_prices.index
