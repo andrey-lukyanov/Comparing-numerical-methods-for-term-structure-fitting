@@ -4,7 +4,7 @@ import datetime as dt
 from scipy.optimize import minimize
 from scipy.optimize import Bounds
 from scipy.optimize import LinearConstraint
-s
+
 #/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/
 #C:/Users/1/Desktop/
 #C:/Users/aaluk/Documents/GitHub/
