@@ -7,13 +7,16 @@ from scipy.optimize import LinearConstraint
 
 #/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/
 #C:/Users/1/Desktop/
+#C:/Users/aaluk/Documents/GitHub
+
+path = '/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/'
 
 #bonds_payments import
-bonds_payments = pd.read_csv('/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/Data/New_data/bonds_payments.csv', index_col = 0)
+bonds_payments = pd.read_csv(path + 'Data/New_data/bonds_payments.csv', index_col = 0)
 bonds_payments['Дата фактической выплаты'] = pd.to_datetime(bonds_payments['Дата фактической выплаты'], format='%Y-%m-%d')
 
 #bonds_prices import
-bonds_prices = pd.read_csv('/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/Data/New_data/bonds_prices.csv', index_col='TRADEDATE', parse_dates=True)
+bonds_prices = pd.read_csv(path + 'Data/New_data/bonds_prices.csv', index_col='TRADEDATE', parse_dates=True)
 
 #dates and trade_codes
 dates = bonds_prices.index
@@ -244,16 +247,63 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
         
         return res.x, execution_time
     
-def optimize_ss_bfgs(starting_values):
+def parallel_l_bfgs_b(starting_values):
 
     thetas = np.zeros([len(dates), 4])
+    time = np.zeros(len(dates))
 
-    theta0 = starting_values[1:]
+    for i in range(len(dates):
+        
+        thetas[i], time[i] = optimize_on_day_with_starting_values(date_number = i, method = 'L-BFGS-B', theta0 = np.copy(starting_values.iloc[i][1:]))
+        
+    thetas = pd.DataFrame(thetas, index = dates, columns = ['tau', 'beta0', 'beta1', 'beta2'])
+    thetas.to_csv(path + 'Thetas/l_bfgs_b_rand_' + str(int(starting_values.Value[0])) + '.csv')
 
-    for i in range(len(dates)):
-        
-        thetas[i] = optimize_on_day_with_starting_values(date_number = i, method = 'BFGS', theta0 = theta0)
-        
-    thetas = pd.DataFrame(thetas, columns=['tau1', 'tau2', 'beta0', 'beta1', 'beta2', 'beta3'], index=dates)
+    time = pd.DataFrame(time, index = dates, columns = ['Seconds'])
+    time.to_csv(path + 'Time/l_bfgs_b_rand_' + str(int(starting_values.Value[0])) + '.csv')
     
-    thetas.to_csv('C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/Thetas/bfgs_rand_' + str(int(starting_values[0])) + '.csv')
+                   
+def parallel_powell(starting_values):
+
+    thetas = np.zeros([len(dates), 4])
+    time = np.zeros(len(dates))
+
+    for i in range(len(dates):
+        
+        thetas[i], time[i] = optimize_on_day_with_starting_values(date_number = i, method = 'Powell', theta0 = np.copy(starting_values.iloc[i][1:]))
+        
+    thetas = pd.DataFrame(thetas, index = dates, columns = ['tau', 'beta0', 'beta1', 'beta2'])
+    thetas.to_csv(path + 'Thetas/powell_rand_' + str(int(starting_values.Value[0])) + '.csv')
+
+    time = pd.DataFrame(time, index = dates, columns = ['Seconds'])
+    time.to_csv(path + 'Time/powell_rand_' + str(int(starting_values.Value[0])) + '.csv')
+                   
+def parallel_nelder_mead(starting_values):
+
+    thetas = np.zeros([len(dates), 4])
+    time = np.zeros(len(dates))
+
+    for i in range(len(dates):
+        
+        thetas[i], time[i] = optimize_on_day_with_starting_values(date_number = i, method = 'Nelder-Mead', theta0 = np.copy(starting_values.iloc[i][1:]))
+        
+    thetas = pd.DataFrame(thetas, index = dates, columns = ['tau', 'beta0', 'beta1', 'beta2'])
+    thetas.to_csv(path + 'Thetas/nelder_mead_rand_' + str(int(starting_values.Value[0])) + '.csv')
+
+    time = pd.DataFrame(time, index = dates, columns = ['Seconds'])
+    time.to_csv(path + 'Time/nelder_mead_rand_' + str(int(starting_values.Value[0])) + '.csv')
+                   
+def parallel_trust_constr(starting_values):
+
+    thetas = np.zeros([len(dates), 4])
+    time = np.zeros(len(dates))
+
+    for i in range(len(dates):
+        
+        thetas[i], time[i] = optimize_on_day_with_starting_values(date_number = i, method = 'trust-constr', theta0 = np.copy(starting_values.iloc[i][1:]))
+        
+    thetas = pd.DataFrame(thetas, index = dates, columns = ['tau', 'beta0', 'beta1', 'beta2'])
+    thetas.to_csv(path + 'Thetas/trust_constr_rand_' + str(int(starting_values.Value[0])) + '.csv')
+
+    time = pd.DataFrame(time, index = dates, columns = ['Seconds'])
+    time.to_csv(path + 'Time/trust_constr_rand_' + str(int(starting_values.Value[0])) + '.csv')
