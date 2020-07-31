@@ -251,7 +251,7 @@ def parallel_l_bfgs_b(starting_values):
     thetas = np.zeros([len(dates), 4])
     time = np.zeros(len(dates))
 
-    for i in range(len(dates):
+    for i in range(len(dates)):
         
         thetas[i], time[i] = optimize_on_day_with_starting_values(date_number = i, method = 'L-BFGS-B', theta0 = np.copy(starting_values.iloc[i][1:]))
         
@@ -267,7 +267,7 @@ def parallel_powell(starting_values):
     thetas = np.zeros([len(dates), 4])
     time = np.zeros(len(dates))
 
-    for i in range(len(dates):
+    for i in range(len(dates)):
         
         thetas[i], time[i] = optimize_on_day_with_starting_values(date_number = i, method = 'Powell', theta0 = np.copy(starting_values.iloc[i][1:]))
         
@@ -282,7 +282,7 @@ def parallel_nelder_mead(starting_values):
     thetas = np.zeros([len(dates), 4])
     time = np.zeros(len(dates))
 
-    for i in range(len(dates):
+    for i in range(len(dates)):
         
         thetas[i], time[i] = optimize_on_day_with_starting_values(date_number = i, method = 'Nelder-Mead', theta0 = np.copy(starting_values.iloc[i][1:]))
         
@@ -297,7 +297,7 @@ def parallel_trust_constr(starting_values):
     thetas = np.zeros([len(dates), 4])
     time = np.zeros(len(dates))
 
-    for i in range(len(dates):
+    for i in range(len(dates)):
         
         thetas[i], time[i] = optimize_on_day_with_starting_values(date_number = i, method = 'trust-constr', theta0 = np.copy(starting_values.iloc[i][1:]))
         
