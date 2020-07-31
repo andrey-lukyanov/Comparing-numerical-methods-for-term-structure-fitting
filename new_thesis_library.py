@@ -173,7 +173,7 @@ reparameterized_loss_functions = [build_reparametarized_loss_function(dates[date
 #optimize on date by method with staring values
 def optimize_on_day_with_starting_values(date_number, method, theta0):
     """
-    a copy should be supplied for theta0 fo L-BFGS-B and Powell, i.e. np.copy()
+    a copy of theta0 should be supplied for L-BFGS-B and Powell, i.e. np.copy()
     """
 
     if method == 'L-BFGS-B':
@@ -203,8 +203,8 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
         
         loss_func = reparameterized_loss_functions[date_number]
         
-        bounds = ((0, 30), (0, np.inf), 
-                  (0, np.inf), (-np.inf, np.inf))
+        bounds = ((0, 30), (0, 1), 
+                  (0, 1), (-1, 1))
         
         start = dt.datetime.now()
     
@@ -222,8 +222,8 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
         
         loss_func = loss_functions[date_number]
         
-        bounds = Bounds([0, 0, -np.inf, -np.inf], 
-                        [30, np.inf, np.inf, np.inf])
+        bounds = Bounds([0, 0, -1, -1], 
+                        [30, 1, 1, 1])
         linear_constraint = LinearConstraint([[0, 1, 1, 0]], [0], [np.inf])
         
         res = minimize(loss_func, theta0, method=method, 
@@ -243,11 +243,10 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
         execution_time = (dt.datetime.now() - start).total_seconds()
         
         return res.x, execution_time
-
     
 def optimize_ss_bfgs(starting_values):
 
-    thetas = np.zeros([len(dates), 6])
+    thetas = np.zeros([len(dates), 4])
 
     theta0 = starting_values[1:]
 
