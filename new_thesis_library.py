@@ -6,8 +6,8 @@ from scipy.optimize import Bounds
 from scipy.optimize import LinearConstraint
 
 #path = '/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/'
-path = 'C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/'
-#path = 'C:/Users/aaluk/Documents/GitHub/Comparing-numerical-methods-for-term-structure-fitting/'
+#path = 'C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/'
+path = 'C:/Users/aaluk/Documents/GitHub/Comparing-numerical-methods-for-term-structure-fitting/'
 
 
 #bonds_payments import
@@ -297,9 +297,13 @@ def parallel_trust_constr(starting_values):
     thetas = np.zeros([len(dates), 4])
     time = np.zeros(len(dates))
 
-    for i in range(len(dates)):
-        
-        thetas[i], time[i] = optimize_on_day_with_starting_values(date_number = i, method = 'trust-constr', theta0 = np.copy(starting_values.iloc[i][1:]))
+    for i in range(len(dates)):        
+        try:
+            thetas[i], time[i] = optimize_on_day_with_starting_values(date_number = i, method = 'trust-constr', theta0 = np.copy(starting_values.iloc[i][1:]))           
+        except ValueError:
+            print('ValueError on starting value', int(starting_values.iloc[i][0]), 'on day', i)
+            thetas[i] = np.nan
+            time[i] = np.nan
         
     thetas = pd.DataFrame(thetas, index = dates, columns = ['tau', 'beta0', 'beta1', 'beta2'])
     thetas.to_csv(path + 'Thetas/trust_constr_rand_' + str(int(starting_values.Value[0])) + '.csv')
