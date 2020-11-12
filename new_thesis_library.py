@@ -5,9 +5,9 @@ from scipy.optimize import minimize
 from scipy.optimize import Bounds
 from scipy.optimize import LinearConstraint
 
-#path = '/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/'
+path = '/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/'
 #path = 'C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/'
-path = 'C:/Users/aaluk/Documents/GitHub/Comparing-numerical-methods-for-term-structure-fitting/'
+#path = 'C:/Users/aaluk/Documents/GitHub/Comparing-numerical-methods-for-term-structure-fitting/'
 
 
 #bonds_payments import
@@ -88,9 +88,9 @@ loss_functions = [build_ss_loss_function(dates[date_number]) for date_number in 
 
 def tau_constraint(tau):
     if tau >= 30:
-        return tau - 30
-    elif tau <= 0.05:
-        return tau - 0.05
+        return 1000 * (tau - 30)
+    elif tau <= 0.01:
+        return 1000 * (tau - 0.01)
     else:
         return 0
     
@@ -184,7 +184,7 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
         
         loss_func = reparameterized_loss_functions[date_number]
         
-        bounds = Bounds([0, 0, 0, -np.inf], 
+        bounds = Bounds([0.01, 0, 0, -np.inf], 
                         [30, np.inf, np.inf, np.inf])
         
         start = dt.datetime.now()
@@ -205,7 +205,7 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
         
         loss_func = reparameterized_loss_functions[date_number]
         
-        bounds = ((0, 30), (0, 1), 
+        bounds = ((0.01, 30), (0, 1), 
                   (0, 1), (-1, 1))
         
         start = dt.datetime.now()
@@ -224,7 +224,7 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
         
         loss_func = loss_functions[date_number]
         
-        bounds = Bounds([0, 0, -1, -1], 
+        bounds = Bounds([0.01, 0, -1, -1], 
                         [30, 1, 1, 1])
         linear_constraint = LinearConstraint([[0, 1, 1, 0]], [0], [np.inf])
         
@@ -310,3 +310,33 @@ def parallel_trust_constr(starting_values):
 
     time = pd.DataFrame(time, index = dates, columns = ['Seconds'])
     time.to_csv(path + 'Time/trust_constr_rand_' + str(int(starting_values.Value[0])) + '.csv')
+    
+def build_rmse_function(date):
+
+    market_prices = bonds_prices[date:date].T
+    market_prices.columns = ['Market prices']
+    market_prices.dropna(inplace=True)    
+
+    payments_on_date = bonds_payments[bonds_payments['Дата фактической выплаты'] >= date]
+    payments_on_date = payments_on_date[payments_on_date['ISIN'].isin(market_prices.index)]
+    
+    def rmse_function(theta):
+        
+        nonlocal payments_on_date, market_prices, date
+    
+        calc_df = pd.concat([(payments_on_date['Дата фактической выплаты'] - date).apply(lambda x: x.days)/365, 
+                          payments_on_date[['ISIN', 'Сумма купона, RUB', 'Погашение номинала, RUB']]], axis = 1)
+        
+        discount(calc_df, theta)
+      
+        calc_prices = pd.DataFrame(calc_df.groupby('ISIN')['Discounted'].sum())
+                
+        result_df = pd.concat([pd.DataFrame(calc_df.groupby('ISIN')['Discounted'].sum()), 
+                               market_prices], axis = 1)
+        
+        #Sum of squares
+        J = ((np.array(result_df['Discounted']) - np.array(result_df['Market prices']))**2).mean()
+        
+        return J
+    
+    return rmse_function
