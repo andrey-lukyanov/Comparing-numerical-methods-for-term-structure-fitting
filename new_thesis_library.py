@@ -5,8 +5,8 @@ from scipy.optimize import minimize
 from scipy.optimize import Bounds
 from scipy.optimize import LinearConstraint
 
-path = '/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/'
-#path = 'C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/'
+#path = '/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/'
+path = 'C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/'
 #path = 'C:/Users/aaluk/Documents/GitHub/Comparing-numerical-methods-for-term-structure-fitting/'
 
 
