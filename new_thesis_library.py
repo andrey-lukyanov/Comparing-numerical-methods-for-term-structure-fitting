@@ -5,8 +5,8 @@ from scipy.optimize import minimize
 from scipy.optimize import Bounds
 from scipy.optimize import LinearConstraint
 
-#path = '/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/'
-path = 'C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/'
+path = '/Users/andrey_lukyanov/Google_Drive/Studies/Year_4/Курсач/Coding/Comparing-numerical-methods-for-term-structure-fitting/'
+#path = 'C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/'
 #path = 'C:/Users/aaluk/Documents/GitHub/Comparing-numerical-methods-for-term-structure-fitting/'
 
 
@@ -212,6 +212,7 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
     
         res = minimize(loss_func, theta0, method=method,
                        options={'disp': False}, bounds=bounds)
+        print(res)
 
         execution_time = (dt.datetime.now() - start).total_seconds()
         
