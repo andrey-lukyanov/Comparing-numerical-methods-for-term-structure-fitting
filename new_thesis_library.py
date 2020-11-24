@@ -21,19 +21,7 @@ bonds_prices = pd.read_csv(path + 'Data/New_data/bonds_prices.csv', index_col='T
 dates = bonds_prices.index
 bond_isins = bonds_payments['ISIN'].unique()
 
-#nss function
-def nss(m, theta):
-    tau1 = theta[0]
-    tau2 = theta[1]
-    beta0 = theta[2]
-    beta1 = theta[3]
-    beta2 = theta[4]
-    beta3 = theta[5]
-    return beta0 + beta1 * (1 - np.exp(- m / tau1)) / (m / tau1) + beta2 * ((1 - np.exp(- m / tau1)) / (m / tau1) - np.exp(- m / tau1)) + beta3 * ((1 - np.exp(- m / tau2)) / (m / tau2) - np.exp(- m / tau2))
-
-def reparameterized_nss(m, u):
-    return u[2] + (u[3] - u[2]) * (1 - np.exp(- m / u[0])) / (m / u[0]) + u[4] * ((1 - np.exp(- m / u[0])) / (m / u[0]) - np.exp(- m / u[0])) + u[5] * ((1 - np.exp(- m / u[1])) / (m / u[1]) - np.exp(- m / u[1]))
-
+#Nelson-Siegel function
 def ns(m, theta):
     tau = theta[0]
     beta0 = theta[1]
@@ -42,6 +30,7 @@ def ns(m, theta):
 
     return beta0 + beta1 * (1 - np.exp(- m / tau)) / (m / tau) + beta2 * ((1 - np.exp(- m / tau)) / (m / tau) - np.exp(- m / tau))
 
+#Reparameterized Nelson-Siegel function
 def reparameterized_ns(m, u):
     return u[1] + (u[2] - u[1]) * (1 - np.exp(- m / u[0])) / (m / u[0]) + u[3] * ((1 - np.exp(- m / u[0])) / (m / u[0]) - np.exp(- m / u[0]))
 
