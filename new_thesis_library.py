@@ -22,24 +22,31 @@ dates = bonds_prices.index
 bond_isins = bonds_payments['ISIN'].unique()
 
 #Nelson-Siegel function
+def g(m, tau):
+    return (1 - np.exp(- m / tau)) / (m / tau)
+
+def h(m, tau):
+    return g(m, tau) - np.exp(- m / tau)
+
+
 def ns(m, theta):
     tau = theta[0]
     beta0 = theta[1]
     beta1 = theta[2]
     beta2 = theta[3]
 
-    return beta0 + beta1 * (1 - np.exp(- m / tau)) / (m / tau) + beta2 * ((1 - np.exp(- m / tau)) / (m / tau) - np.exp(- m / tau))
+    return beta0 + beta1 * g(m, tau) + beta2 * h(m, tau)
 
 #Reparameterized Nelson-Siegel function
-def reparameterized_ns(m, u):
-    return u[1] + (u[2] - u[1]) * (1 - np.exp(- m / u[0])) / (m / u[0]) + u[3] * ((1 - np.exp(- m / u[0])) / (m / u[0]) - np.exp(- m / u[0]))
+def rep_ns(m, u):
+    return u[1] + (u[2] - u[1]) * g(m, u[0]) + u[3] * h(m, u[0])
 
-#Add discounted by nss curve prices to a dataframe on a data. Works specifically for build_ss_loss_function 
+#Add prices discounted by nss curve to a dataframe on a date. Works specifically for build_ss_loss_function 
 def discount(df, theta):
     df['Discounted'] = (df['Сумма купона, RUB'] + df['Погашение номинала, RUB']) * np.exp(-ns(m = df['Дата фактической выплаты'], theta = theta) * df['Дата фактической выплаты'])
     
 def discount_rep(df, u):
-    df['Discounted'] = (df['Сумма купона, RUB'] + df['Погашение номинала, RUB']) * np.exp(-reparameterized_ns(m = df['Дата фактической выплаты'], u = u) * df['Дата фактической выплаты'])
+    df['Discounted'] = (df['Сумма купона, RUB'] + df['Погашение номинала, RUB']) * np.exp(-rep_ns(m = df.t, u = u) * df.t)
     
 #loss function
 def build_ss_loss_function(date):
@@ -73,7 +80,7 @@ def build_ss_loss_function(date):
     return ss_loss_function
 
 
-loss_functions = [build_ss_loss_function(dates[date_number]) for date_number in range(len(dates))]
+#loss_functions = [build_ss_loss_function(dates[date_number]) for date_number in range(len(dates))]
 
 def tau_constraint(tau):
     if tau >= 30:
@@ -127,9 +134,9 @@ def build_constrained_loss_function(date):
     
     return loss_function
 
-constrained_loss_functions = [build_constrained_loss_function(dates[date_number]) for date_number in range(len(dates))]
+#constrained_loss_functions = [build_constrained_loss_function(dates[date_number]) for date_number in range(len(dates))]
 
-def build_reparametarized_loss_function(date):
+def build_rep_loss_function_and_grad(date):
     
     market_prices = bonds_prices[date:date].T
     market_prices.columns = ['Market prices']
@@ -137,13 +144,15 @@ def build_reparametarized_loss_function(date):
     
     payments_on_date = bonds_payments[bonds_payments['Дата фактической выплаты'] >= date]
     payments_on_date = payments_on_date[payments_on_date['ISIN'].isin(market_prices.index)]
+
+    calc_df = pd.concat([(payments_on_date['Дата фактической выплаты'] - date).apply(lambda x: x.days)/365, 
+                          payments_on_date[['ISIN', 'Сумма купона, RUB', 'Погашение номинала, RUB']]], axis = 1)
+    calc_df['CF'] = calc_df[['Сумма купона, RUB', 'Погашение номинала, RUB']].sum(axis = 1)
+    calc_df.rename(columns = {'Дата фактической выплаты': 't'}, inplace = True)
     
     def loss_function(u):
         
-        nonlocal payments_on_date, market_prices, date
-    
-        calc_df = pd.concat([(payments_on_date['Дата фактической выплаты'] - date).apply(lambda x: x.days)/365, 
-                          payments_on_date[['ISIN', 'Сумма купона, RUB', 'Погашение номинала, RUB']]], axis = 1)
+        nonlocal calc_df, market_prices
         
         discount_rep(calc_df, u)
       
@@ -157,9 +166,47 @@ def build_reparametarized_loss_function(date):
        
         return J
     
-    return loss_function
+    def gradient(u):
+        
+        nonlocal calc_df, market_prices
+        
+        discount_rep(calc_df, u)
+      
+        calc_prices = pd.DataFrame(calc_df.groupby('ISIN')['Discounted'].sum())
+                
+        result_df = pd.concat([pd.DataFrame(calc_df.groupby('ISIN')['Discounted'].sum()), 
+                               market_prices], axis = 1)
 
-reparameterized_loss_functions = [build_reparametarized_loss_function(dates[date_number]) for date_number in range(len(dates))]
+
+        result_df['price_diff'] = result_df['Market prices'] - result_df['Discounted']
+        
+        #partials calculation
+        first_mult = calc_df.CF * calc_df.t * np.exp(-rep_ns(calc_df.t, u) * calc_df.t) / 500
+                
+        #d_tau calculation
+        calc_df['tau_mult'] = first_mult * (u[1] + (u[2] - u[1] + u[3])/calc_df.t * (1 - np.exp(-calc_df.t / u[0]) * (1 + calc_df.t / u[0])) + u[3]/u[0]**2 * np.exp(-calc_df.t / u[0]))
+        result_df['tau_mult'] = calc_df.groupby('ISIN')['tau_mult'].sum()
+        d_tau = ((result_df['price_diff']) * result_df['tau_mult']).sum()        
+
+        #du_0 calculation
+        calc_df['du_0_mult'] = first_mult * (1 - g(calc_df.t, u[0]))
+        result_df['du_0_mult'] = calc_df.groupby('ISIN')['du_0_mult'].sum()
+        du_0 = ((result_df['price_diff']) * result_df['du_0_mult']).sum()
+ 
+        #du_1 calculation
+        calc_df['du_1_mult'] = first_mult * g(calc_df.t, u[0])
+        result_df['du_1_mult'] = calc_df.groupby('ISIN')['du_1_mult'].sum()
+        du_1 = ((result_df['price_diff']) * result_df['du_1_mult']).sum()
+        
+        #du_2 calculation
+        calc_df['du_2_mult'] = first_mult * h(calc_df.t, u[0])
+        result_df['du_2_mult'] = calc_df.groupby('ISIN')['du_2_mult'].sum()
+        du_2 = (result_df['price_diff'] * result_df['du_2_mult']).sum()
+           
+        return np.array([d_tau, du_0, du_1, du_2])
+
+    return loss_function, gradient
+rep_loss_functions = [build_rep_loss_function_and_grad(dates[date_number]) for date_number in range(len(dates))]
     
 #optimize on date by method with staring values
 def optimize_on_day_with_starting_values(date_number, method, theta0):
@@ -171,7 +218,7 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
         
         theta0[2] = theta0[2] + theta0[1]
         
-        loss_func = reparameterized_loss_functions[date_number]
+        loss_func, grad = rep_loss_functions[date_number]
         
         bounds = Bounds([0.01, 0, 0, -np.inf], 
                         [30, np.inf, np.inf, np.inf])
@@ -192,7 +239,7 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
         
         theta0[2] = theta0[2] + theta0[1]
         
-        loss_func = reparameterized_loss_functions[date_number]
+        loss_func, _ = rep_loss_functions[date_number]
         
         bounds = ((0.01, 30), (0, 1), 
                   (0, 1), (-1, 1))
