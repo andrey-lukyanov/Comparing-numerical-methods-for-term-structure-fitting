@@ -1,0 +1,5 @@
+Method,L-BFGS-B,Powell,Nelder-Mead,Trust Constrained
+Best of Random,6.3,6.54,6.67,6.3
+Recurrent,99.82,87.83,31.8,6.85
+Manousopoulos,17.13,21.22,7.09,6.36
+Diebold Li,11.8,28.01,6.91,6.36
