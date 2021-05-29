@@ -5,8 +5,8 @@ from scipy.optimize import minimize
 from scipy.optimize import Bounds
 from scipy.optimize import LinearConstraint
 
-path = '/Users/andrey_lukyanov/Google_Drive/Studies/Year_6/Thesis/Comparing-numerical-methods-for-term-structure-fitting/'
-#path = 'C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/'
+#path = '/Users/andrey_lukyanov/Google_Drive/Studies/Year_6/Thesis/Comparing-numerical-methods-for-term-structure-fitting/'
+path = 'C:/Users/1/Desktop/Comparing-numerical-methods-for-term-structure-fitting/'
 #path = 'C:/Users/aaluk/Documents/GitHub/Comparing-numerical-methods-for-term-structure-fitting/'
 
 
@@ -80,7 +80,7 @@ def build_ss_loss_function(date):
     return ss_loss_function
 
 
-#loss_functions = [build_ss_loss_function(dates[date_number]) for date_number in range(len(dates))]
+loss_functions = [build_ss_loss_function(dates[date_number]) for date_number in range(len(dates))]
 
 def tau_constraint(tau):
     if tau >= 30:
@@ -134,9 +134,9 @@ def build_constrained_loss_function(date):
     
     return loss_function
 
-#constrained_loss_functions = [build_constrained_loss_function(dates[date_number]) for date_number in range(len(dates))]
+constrained_loss_functions = [build_constrained_loss_function(dates[date_number]) for date_number in range(len(dates))]
 
-def build_rep_loss_function_and_grad(date):
+def build_rep_loss_function(date):
     
     market_prices = bonds_prices[date:date].T
     market_prices.columns = ['Market prices']
@@ -165,48 +165,9 @@ def build_rep_loss_function_and_grad(date):
         J = (((np.array(result_df['Discounted']) - np.array(result_df['Market prices']))/1000)**2).sum()
        
         return J
-    
-#    def gradient(u):
-#        
-#        nonlocal calc_df, market_prices
-#        
-#        discount_rep(calc_df, u)
-#      
-#        calc_prices = pd.DataFrame(calc_df.groupby('ISIN')['Discounted'].sum())
-#                
-#        result_df = pd.concat([pd.DataFrame(calc_df.groupby('ISIN')['Discounted'].sum()), 
-#                               market_prices], axis = 1)
-#
-#
-#        result_df['price_diff'] = result_df['Market prices'] - result_df['Discounted']
-#        
-#        #partials calculation
-#        first_mult = calc_df.CF * calc_df.t * np.exp(-rep_ns(calc_df.t, u) * calc_df.t) / 500
-#                
-#        #d_tau calculation
-#        calc_df['tau_mult'] = first_mult * (u[1] + (u[2] - u[1] + u[3])/calc_df.t * (1 - np.exp(-calc_df.t / u[0]) * (1 + calc_df.t / u[0])) + u[3]/u[0]**2 * np.exp(-calc_df.t / u[0]))
-#        result_df['tau_mult'] = calc_df.groupby('ISIN')['tau_mult'].sum()
-#        d_tau = ((result_df['price_diff']) * result_df['tau_mult']).sum()        
-#
-#        #du_0 calculation
-#        calc_df['du_0_mult'] = first_mult * (1 - g(calc_df.t, u[0]))
-#        result_df['du_0_mult'] = calc_df.groupby('ISIN')['du_0_mult'].sum()
-#        du_0 = ((result_df['price_diff']) * result_df['du_0_mult']).sum()
-# 
-#        #du_1 calculation
-#        calc_df['du_1_mult'] = first_mult * g(calc_df.t, u[0])
-#        result_df['du_1_mult'] = calc_df.groupby('ISIN')['du_1_mult'].sum()
-#        du_1 = ((result_df['price_diff']) * result_df['du_1_mult']).sum()
-#        
-#        #du_2 calculation
-#        calc_df['du_2_mult'] = first_mult * h(calc_df.t, u[0])
-#        result_df['du_2_mult'] = calc_df.groupby('ISIN')['du_2_mult'].sum()
-#        du_2 = (result_df['price_diff'] * result_df['du_2_mult']).sum()
-#           
-#        return np.array([d_tau, du_0, du_1, du_2])
-
     return loss_function
-rep_loss_functions = [build_rep_loss_function_and_grad(dates[date_number]) for date_number in range(len(dates))]
+
+rep_loss_functions = [build_rep_loss_function(dates[date_number]) for date_number in range(len(dates))]
     
 #optimize on date by method with staring values
 def optimize_on_day_with_starting_values(date_number, method, theta0):
@@ -239,7 +200,7 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
         
         theta0[2] = theta0[2] + theta0[1]
         
-        loss_func, _ = rep_loss_functions[date_number]
+        loss_func = rep_loss_functions[date_number]
         
         bounds = ((0.01, 30), (0, 1), 
                   (0, 1), (-1, 1))
@@ -248,7 +209,6 @@ def optimize_on_day_with_starting_values(date_number, method, theta0):
     
         res = minimize(loss_func, theta0, method=method,
                        options={'disp': False}, bounds=bounds)
-        print(res)
 
         execution_time = (dt.datetime.now() - start).total_seconds()
         
